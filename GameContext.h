@@ -21,4 +21,10 @@ public:
 	virtual GameCamera& GetCamera() = 0;
 	// コモンステート取得
 	virtual DirectX::CommonStates& GetStates() = 0;
+	// ウィンドウ取得
+	virtual HWND& GetWindowHandle() = 0;
+	// マウストラッカー取得
+	virtual DirectX::Mouse::ButtonStateTracker& GetMouseTracker() = 0;
+	// キーボードトラッカー取得
+	virtual DirectX::Keyboard::KeyboardStateTracker& GetKeyboardTracker() = 0;
 };

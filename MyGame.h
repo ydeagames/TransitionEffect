@@ -12,6 +12,8 @@ class MyGame
 	std::unique_ptr<GridFloor>				m_pGridFloor;
 
 	// シェーダー変数
+#pragma warning(push)
+#pragma warning(disable:4324)
 	struct alignas(16) ConstBuffer
 	{
 		DirectX::SimpleMath::Matrix		matWorld;
@@ -19,7 +21,9 @@ class MyGame
 		DirectX::SimpleMath::Matrix		matProj;
 		DirectX::SimpleMath::Vector4	Diffuse;
 		float time;
+		float range;
 	};
+#pragma warning(pop)
 
 	// レイアウト
 	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;

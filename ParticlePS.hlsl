@@ -1,13 +1,15 @@
 #include "Particle.hlsli"
 
-Texture2D tex : register(t0);
-Texture2D tex2 : register(t1);
-SamplerState samLinear : register(s0);
+Texture2D _MainTex : register(t0);
+Texture2D _MaskTex : register(t1);
+SamplerState _SamLinear : register(s0);
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-	float4 diff = tex.Sample(samLinear, input.Tex);
-	float4 diff2 = tex2.Sample(samLinear, input.Tex);
-	float t = (sin(time) + 1) * .5f;
-	return float4(t, 1, t, diff.a);
+	float4 mainTex = _MainTex.Sample(_SamLinear, input.Tex);
+	float4 maskTex = _MaskTex.Sample(_SamLinear, input.Tex);
+	float grayscale = dot(maskTex.rgb, float3(0.2126, 0.7152, 0.0722));
+	float mask = grayscale - (-1 + range);
+	clip(mask - 0.9999f);
+	return mainTex;
 }

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <commdlg.h>
 #include "MyGame.h"
 #include "GameCamera.h"
 #include "GameContext.h"
@@ -48,7 +49,8 @@ void MyGame::Initialize(GameContext& context)
 	DX::ThrowIfFailed(device->CreateGeometryShader(GSData.GetData(), GSData.GetSize(), NULL, m_GeometryShader.ReleaseAndGetAddressOf()));
 
 	// テクスチャのロード
-	CreateWICTextureFromFile(device, L"Resources/Textures/shadow.png", nullptr, m_texture.GetAddressOf());
+	CreateWICTextureFromFile(device, L"Resources/Textures/melon.png", nullptr, m_texture.GetAddressOf());
+	CreateWICTextureFromFile(device, L"Resources/Textures/171.png", nullptr, m_texture2.GetAddressOf());
 
 	// バッファの作成
 	D3D11_BUFFER_DESC bd;
@@ -65,11 +67,39 @@ void MyGame::Initialize(GameContext& context)
 	m_model = DirectX::Model::CreateFromCMO(context.GetDR().GetD3DDevice(), L"Resources/cup.cmo", fxFactory);
 }
 
+namespace
+{
+	BOOL GetFileName(HWND hWnd, wchar_t* fname, int sz, wchar_t* initDir) {
+		OPENFILENAME o;
+		fname[0] = L'\0';
+		ZeroMemory(&o, sizeof(o));
+		o.lStructSize = sizeof(o);
+		o.hwndOwner = hWnd;
+		o.lpstrInitialDir = initDir;
+		o.lpstrFile = fname;
+		o.nMaxFile = sz;
+		o.lpstrFilter = L"pngファイル(*.png)\0*.png\0" L"全てのファイル(*.*)\0*.*\0";
+		o.lpstrDefExt = L"TXT";
+		o.lpstrTitle = L"ルール画像を指定";
+		o.nFilterIndex = 1;
+		return GetOpenFileName(&o);
+	}
+}
+
 void MyGame::Update(GameContext& context)
 {
 	// デバッグカメラ更新
 	m_pDebugCamera->update();
 	context.GetCamera().view = m_pDebugCamera->getViewMatrix();
+
+	if (context.GetKeyboardTracker().IsKeyPressed(Keyboard::Keys::Space))
+	{
+		wchar_t fname[256];
+		if (GetFileName(context.GetWindowHandle(), fname, 256, nullptr))
+		{
+			CreateWICTextureFromFile(context.GetDR().GetD3DDevice(), fname, nullptr, m_texture2.ReleaseAndGetAddressOf());
+		}
+	}
 }
 
 void MyGame::Render(GameContext& context)
@@ -82,14 +112,11 @@ void MyGame::Render(GameContext& context)
 	// モデル
 	{
 		// 描画
-		ctx->VSSetShader(nullptr, nullptr, 0);
-		ctx->PSSetShader(nullptr, nullptr, 0);
-		ctx->GSSetShader(nullptr, nullptr, 0);
 		m_model->Draw(ctx, context.GetStates(), Matrix::Identity, context.GetCamera().view, context.GetCamera().projection);
 	}
 
 	// オブジェ
-	auto Draw = [&](const Matrix& world)
+	auto Draw = [&](const Matrix& world, const Matrix& view, const Matrix& proj)
 	{
 		ID3D11BlendState* blendstate = context.GetStates().NonPremultiplied();
 		// 透明判定処理
@@ -106,11 +133,12 @@ void MyGame::Render(GameContext& context)
 
 		// 定数バッファ更新
 		ConstBuffer cbuff;
-		cbuff.matView = context.GetCamera().view.Transpose();
-		cbuff.matProj = context.GetCamera().projection.Transpose();
+		cbuff.matView = view.Transpose();
+		cbuff.matProj = proj.Transpose();
 		cbuff.matWorld = world.Transpose();
 		cbuff.Diffuse = Vector4(1, 1, 1, 1);
 		cbuff.time = float(context.GetTimer().GetTotalSeconds());
+		cbuff.range = std::max(0.f, (std::sin(cbuff.time) + 1) / 2 * 1.01f);
 
 		// 定数バッファの内容更新
 		ctx->UpdateSubresource(m_CBuffer.Get(), 0, NULL, &cbuff, 0, 0);
@@ -125,7 +153,7 @@ void MyGame::Render(GameContext& context)
 		ctx->VSSetShader(m_VertexShader.Get(), nullptr, 0);
 		ctx->PSSetShader(m_PixelShader.Get(), nullptr, 0);
 		ctx->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
-		//ctx->PSSetShaderResources(1, 1, m_texture2.GetAddressOf());
+		ctx->PSSetShaderResources(1, 1, m_texture2.GetAddressOf());
 		ctx->GSSetShader(m_GeometryShader.Get(), nullptr, 0);
 		static std::vector<VertexPositionColorTexture> vertices = {
 			VertexPositionColorTexture(Vector3(0.5f, 0.5f, 0.0f), Vector4::One, Vector2(1.0f, 0.0f)),
@@ -139,9 +167,13 @@ void MyGame::Render(GameContext& context)
 		m_primitiveBatch->Begin();
 		m_primitiveBatch->DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indices.data(), indices.size(), vertices.data(), vertices.size());
 		m_primitiveBatch->End();
+
+		// Shader Reset
+		ctx->VSSetShader(nullptr, nullptr, 0);
+		ctx->PSSetShader(nullptr, nullptr, 0);
+		ctx->GSSetShader(nullptr, nullptr, 0);
 	};
-	Draw(Matrix::CreateTranslation(Vector3::Transform(Vector3::Left, Matrix::CreateRotationY(-float(context.GetTimer().GetTotalSeconds())))));
-	Draw(Matrix::CreateTranslation(Vector3::Transform(Vector3::Left, Matrix::CreateRotationY(-XMConvertToRadians(90) - float(context.GetTimer().GetTotalSeconds())))) * Matrix::CreateRotationZ(XMConvertToRadians(90)));
+	Draw(Matrix::CreateScale(2), Matrix::Identity, Matrix::Identity);
 }
 
 void MyGame::Finalize(GameContext& context)

@@ -5,6 +5,7 @@ cbuffer ConstBuffer	: register(b0)
 	matrix matProj;
 	float4 diffuse;
 	float time;
+	float range;
 };
 
 struct VS_INPUT

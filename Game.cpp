@@ -27,6 +27,9 @@ Game::~Game()
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
+	// ウィンドウ
+	m_window = window;
+
 	// ロジック作成
 	m_myGame = std::make_unique<MyGame>();
 
@@ -71,6 +74,10 @@ void Game::Update(DX::StepTimer const& timer)
 
     // TODO: Add your game logic here.
     elapsedTime;
+
+	// トラッカー更新
+	m_mouseTracker.Update(m_pMouse->GetState());
+	m_keyboardTracker.Update(m_pKeyboard->GetState());
 
 	// ロジック更新
 	m_myGame->Update(*this);
@@ -136,6 +143,7 @@ void Game::OnActivated()
 void Game::OnDeactivated()
 {
     // TODO: Game is becoming background window.
+	m_pKeyboard->Reset();
 }
 
 void Game::OnSuspending()

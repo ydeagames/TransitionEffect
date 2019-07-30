@@ -50,6 +50,9 @@ private:
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
 
+	// Window
+	HWND									m_window;
+
 	// Device resources.
 	std::unique_ptr<DX::DeviceResources>    m_deviceResources;
 
@@ -58,8 +61,12 @@ private:
 
 	// マウス
 	std::unique_ptr<DirectX::Mouse>			m_pMouse;
+	// マウストラッカー
+	DirectX::Mouse::ButtonStateTracker		m_mouseTracker;
 	// キーボード
 	std::unique_ptr<DirectX::Keyboard>		m_pKeyboard;
+	// キーボードトラッカー
+	DirectX::Keyboard::KeyboardStateTracker m_keyboardTracker;
 
 	// コモンステート
 	std::unique_ptr<DirectX::CommonStates>	m_pState;
@@ -88,5 +95,20 @@ private:
 	DirectX::CommonStates& GetStates()
 	{
 		return *m_pState;
+	}
+	// ウィンドウ取得
+	HWND& GetWindowHandle()
+	{
+		return m_window;
+	}
+	// キーボードトラッカー取得
+	DirectX::Keyboard::KeyboardStateTracker& GetKeyboardTracker()
+	{
+		return m_keyboardTracker;
+	}
+	// マウストラッカー取得
+	DirectX::Mouse::ButtonStateTracker& GetMouseTracker()
+	{
+		return m_mouseTracker;
 	}
 };
