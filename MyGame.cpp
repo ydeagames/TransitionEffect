@@ -38,7 +38,7 @@ void MyGame::Initialize(GameContext& context)
 
 	// インプットレイアウト生成
 	device->CreateInputLayout(INPUT_LAYOUT.data(),
-		INPUT_LAYOUT.size(),
+		UINT(INPUT_LAYOUT.size()),
 		VSData.GetData(), VSData.GetSize(),
 		m_inputLayout.GetAddressOf());
 	// 頂点シェーダ作成
@@ -138,7 +138,9 @@ void MyGame::Render(GameContext& context)
 		cbuff.matWorld = world.Transpose();
 		cbuff.Diffuse = Vector4(1, 1, 1, 1);
 		cbuff.time = float(context.GetTimer().GetTotalSeconds());
-		cbuff.range = std::max(0.f, (std::sin(cbuff.time) + 1) / 2 * 1.01f);
+		//cbuff.range = std::max(0.f, (std::sin(cbuff.time) + 1) / 2 * 1.01f);
+		cbuff.range = std::min(2.f, std::max(0.f, (std::fmodf(cbuff.time,8.0f)/8.0f*2) * 1.01f));
+		SetWindowText(context.GetWindowHandle(), std::to_wstring(cbuff.range).c_str());
 
 		// 定数バッファの内容更新
 		ctx->UpdateSubresource(m_CBuffer.Get(), 0, NULL, &cbuff, 0, 0);
