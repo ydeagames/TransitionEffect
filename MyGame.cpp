@@ -158,10 +158,10 @@ void MyGame::Render(GameContext& context)
 		ctx->PSSetShaderResources(1, 1, m_texture2.GetAddressOf());
 		ctx->GSSetShader(m_GeometryShader.Get(), nullptr, 0);
 		static std::vector<VertexPositionColorTexture> vertices = {
-			VertexPositionColorTexture(Vector3(0.5f, 0.5f, 0.0f), Vector4::One, Vector2(1.0f, 0.0f)),
-			VertexPositionColorTexture(Vector3(-0.5f, 0.5f, 0.0f), Vector4::One, Vector2(0.0f, 0.0f)),
-			VertexPositionColorTexture(Vector3(-0.5f,-0.5f, 0.0f), Vector4::One, Vector2(0.0f, 1.0f)),
-			VertexPositionColorTexture(Vector3(0.5f, -0.5f, 0.0f), Vector4::One, Vector2(1.0f, 1.0f)),
+			VertexPositionColorTexture(Vector3(+0.5f, +0.5f, 0.0f), Vector4::One, Vector2(1.0f, 0.0f)),
+			VertexPositionColorTexture(Vector3(-0.5f, +0.5f, 0.0f), Vector4::One, Vector2(0.0f, 0.0f)),
+			VertexPositionColorTexture(Vector3(-0.5f, -0.5f, 0.0f), Vector4::One, Vector2(0.0f, 1.0f)),
+			VertexPositionColorTexture(Vector3(+0.5f, -0.5f, 0.0f), Vector4::One, Vector2(1.0f, 1.0f)),
 		};
 		static std::vector<uint16_t> indices = {
 			0, 1, 2, 0, 2, 3
