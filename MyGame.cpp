@@ -104,6 +104,7 @@ void MyGame::Update(GameContext& context)
 
 void MyGame::Render(GameContext& context)
 {
+	auto device = context.GetDR().GetD3DDevice();
 	auto ctx = context.GetDR().GetD3DDeviceContext();
 
 	// グリッド床描画
@@ -118,9 +119,28 @@ void MyGame::Render(GameContext& context)
 	// オブジェ
 	auto Draw = [&](const Matrix& world, const Matrix& view, const Matrix& proj)
 	{
-		ID3D11BlendState* blendstate = context.GetStates().NonPremultiplied();
-		// 透明判定処理
-		ctx->OMSetBlendState(blendstate, nullptr, 0xFFFFFFFF);
+		ID3D11BlendState* pBlendState = NULL;
+		D3D11_BLEND_DESC BlendDesc;
+		ZeroMemory(&BlendDesc, sizeof(BlendDesc));
+		BlendDesc.AlphaToCoverageEnable = FALSE;
+		BlendDesc.IndependentBlendEnable = FALSE;
+		BlendDesc.RenderTarget[0].BlendEnable = TRUE;
+		BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_INV_DEST_COLOR;
+		BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+		BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
+		BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		device->CreateBlendState(&BlendDesc, &pBlendState);
+		ctx->OMSetBlendState(pBlendState, blendFactor, 0xFFFFFFFF);
+
+		//ID3D11BlendState* blendstate = context.GetStates().NonPremultiplied();
+		//// 透明判定処理
+		//ctx->OMSetBlendState(blendstate, nullptr, 0xFFFFFFFF);
+
 		// 深度バッファに書き込み参照する
 		ctx->OMSetDepthStencilState(context.GetStates().DepthRead(), 0);
 		// カリングは右周り（時計回り）
